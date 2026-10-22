@@ -1,0 +1,39 @@
+name: Build ChatikMimi APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ChatikMimiAndroid.zip'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Unpack Android project
+        run: unzip -q ChatikMimiAndroid.zip
+      - name: Build debug APK
+        working-directory: ChatikMimiAndroid
+        run: gradle assembleDebug --no-daemon
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChatikMimi-debug-apk
+          path: ChatikMimiAndroid/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 7
